@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>初階日語綜合練習</title>
+  
+  <!-- 引入 Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- 引入可愛圓潤字體 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800&display=swap" rel="stylesheet">
+  
+  <!-- 引入 React 與 ReactDOM -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  
+  <!-- 引入 Babel 讓瀏覽器即時編譯 JSX -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+    body {
+      font-family: 'M PLUS Rounded 1c', 'Nunito', sans-serif;
+    }
+  </style>
+</head>
+<body class="bg-pink-50 selection:bg-pink-200">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    // 解析並渲染帶有假名標音的日文文字
+    // 格式範例： "[漢字|かんじ]"
+    const renderRuby = (text) => {
+      if (!text) return null;
+      const regex = /\[([^|\]]+)\|([^\]]+)\]/g;
+      const parts = [];
+      let lastIndex = 0;
+      let match;
+
+      while ((match = regex.exec(text)) !== null) {
+        if (match.index > lastIndex) {
+          parts.push(<span key={`text-${lastIndex}`}>{text.substring(lastIndex, match.index)}</span>);
+        }
+        parts.push(
+          <ruby key={`ruby-${match.index}`} className="mx-[2px]">
+            {match[1]}
+            <rt className="text-[0.65em] text-pink-500 font-bold tracking-tighter">{match[2]}</rt>
+          </ruby>
+        );
+        lastIndex = regex.lastIndex;
+      }
+      if (lastIndex < text.length) {
+        parts.push(<span key={`text-${lastIndex}`}>{text.substring(lastIndex)}</span>);
+      }
+      return parts;
+    };
+
+    // 教材資料陣列 (共20頁)
+    const pagesData = [
+      // ================= 第一章 (1-10頁) =================
+      {
+        type: 'rice', chapter: 1, title: '與米相關的單字：八代目儀兵衛',
+        groups: [
+          {
+            words: [{ jp: '[翁霞|おきなかすみ]', cn: '頂級品牌米翁霞' }, { jp: '[厳選|げんせん]', cn: '嚴選' }],
+            sentenceJp: '[厳選|げんせん]された[翁霞|おきなかすみ]は[最高|さいこう]の[味|あじ]わいです。',
+            sentenceCn: '嚴選的翁霞米擁有最棒的風味。'
+          },
+          {
+            words: [{ jp: 'ブレンド', cn: '混合 / 調配' }, { jp: '[炊|た]き[上|あ]がり', cn: '剛煮好的狀態' }],
+            sentenceJp: '[独自|どくじ]のブレンドで、[炊|た]き[上|あ]がりの[香|かお]りが[違|ちが]います。',
+            sentenceCn: '透過獨家比例混和，剛煮好時的香氣截然不同。'
+          },
+          {
+            words: [{ jp: '[土鍋|どなべ]', cn: '砂鍋 / 土鍋' }, { jp: 'おもてなし', cn: '盛情款待' }],
+            sentenceJp: '[土鍋|どなべ]で[炊|た]いたご[飯|はん]は、[最高|さいこう]のおもてなしです。',
+            sentenceCn: '用土鍋煮出的米飯，是最棒的款待。'
+          }
+        ]
+      },
+      {
+        type: 'rice', chapter: 1, title: '與米相關的單字：口感與種類',
+        groups: [
+          {
+            words: [{ jp: '[雑穀米|ざっこくまい]', cn: '雜糧米' }, { jp: '[五穀米|ごこくまい]', cn: '五穀米' }],
+            sentenceJp: '[健康|けんこう]のために、[雑穀米|ざっこくまい]や[五穀米|ごこくまい]を[食|た]べます。',
+            sentenceCn: '為了身體健康，我會吃雜糧米或五穀米。'
+          },
+          {
+            words: [{ jp: '[稲作|いなさく]', cn: '種植水稻' }, { jp: '[粘|ねば]り[気|け]', cn: '黏性' }],
+            sentenceJp: '[日本|にほん]の[稲作|いなさく]は、[粘|ねば]り[気|け]のある[米|こめ]を[作|つく]ります。',
+            sentenceCn: '日本的種稻技術培育出富有黏性的米。'
+          },
+          {
+            words: [{ jp: '[甘|あま]み', cn: '甜味' }, { jp: '[食感|しょっかん]', cn: '口感' }],
+            sentenceJp: '[噛|か]むほどに[甘|あま]みが[増|ま]し、もちもちの[食感|しょっかん]が[楽|たの]しめます。',
+            sentenceCn: '越嚼越增加甜味，能享受Q彈的口感。'
+          }
+        ]
+      },
+      {
+        type: 'travel', chapter: 1, title: '東京購物：商品調貨',
+        dialogue: [
+          { speaker: '顧客', text: 'この[商品|しょうひん]の[在庫|ざいこ]はありますか。', cn: '請問這個商品有庫存嗎？' },
+          { speaker: '店員', text: 'あいにく[切|き]らしておりますが、お[取|と]り[寄|よ]せいたしましょうか。', cn: '很不巧目前缺貨，需要為您調貨嗎？' }
+        ],
+        vocab: { jp: '[取|と]り[寄|よ]せる', cn: '調貨 / 訂購', exJp: 'ネットで[海外|かいがい]から[取|と]り[寄|よ]せます。', exCn: '從網路向海外訂購。' },
+        grammar: { jp: '〜いたしましょうか', cn: '讓我為您～吧？(謙讓表達)', exJp: '[荷物|にもつ]をお[持|も]ちいたしましょうか。', exCn: '讓我為您拿行李吧？' },
+        practice: { cn: '讓我為您說明吧？', before: 'ご[説明|せつめい]', answer: 'いたしましょうか', after: '。' }
+      },
+      {
+        type: 'travel', chapter: 1, title: '東京購物：試吃與試用',
+        dialogue: [
+          { speaker: '顧客', text: 'こちらの[化粧水|けしょうすい]は[試用|しよう]できますか。', cn: '請問這款化妝水可以試用嗎？' },
+          { speaker: '店員', text: 'はい、[隣|となり]に[試食用|ししょくよう]のクッキーもありますので、ぜひお[試|ため]しください。', cn: '可以的，旁邊也有提供試吃的餅乾，請務必試試看。' }
+        ],
+        vocab: { jp: '[試|ため]す', cn: '嘗試 / 試試看', exJp: '[新|あたら]しい[味|あじ]を[試|ため]します。', exCn: '嘗試新的口味。' },
+        grammar: { jp: '〜てみる', cn: '試著做做看～', exJp: 'この[服|ふく]を[着|き]てみます。', exCn: '我試穿看看這件衣服。' },
+        practice: { cn: '請試著吃一口看看。', before: '[一口|ひとくち]', answer: '[食|た]べてみて', after: 'ください。' }
+      },
+      {
+        type: 'travel', chapter: 1, title: '東京購物：預算與大量購買',
+        dialogue: [
+          { speaker: '顧客', text: 'お[土産用|みやげよう]にまとめ[買|が]いしたいのですが。', cn: '我想為了當伴手禮一次大量購買。' },
+          { speaker: '店員', text: 'ご[予算|よさん]に[合|あ]わせて、[詰|つ]め[合|あ]わせをお[作|つく]りしますよ。', cn: '我們可以配合您的預算，為您製作綜合禮盒喔。' }
+        ],
+        vocab: { jp: 'まとめ[買|が]い', cn: '一次買齊 / 大量購買', exJp: 'スーパーでまとめ[買|が]いをしました。', exCn: '在超市一次買齊了東西。' },
+        grammar: { jp: '〜に[合|あ]わせて', cn: '配合～ / 依照～', exJp: 'スケジュールに[合|あ]わせて[動|うご]きます。', exCn: '配合行程來行動。' },
+        practice: { cn: '配合客人的需求來調整。', before: 'お[客様|きゃくさま]の[希望|きぼう]に', answer: '[合|あ]わせて', after: '[調整|ちょうせい]します。' }
+      },
+      {
+        type: 'travel', chapter: 1, title: '東京購物：免稅流行語',
+        dialogue: [
+          { speaker: '顧客', text: 'これは[免税|めんぜい]になりますか。', cn: '請問這個可以免稅嗎？' },
+          { speaker: '店員', text: 'はい。ただ、[最近|さいきん]は「[免税|めんぜい]であって、[無料|むりょう]ではない」と[勘違|かんちが]いされる[方|かた]が[多|おお]いのでご[注意|ちゅうい]を。', cn: '可以。只是最近常有人誤會「是免稅而不是免費」，還請留意喔。' }
+        ],
+        vocab: { jp: '[勘違|かんちが]い', cn: '誤會 / 錯覺', exJp: '[時間|じかん]を[勘違|かんちが]いしていました。', exCn: '我誤會(記錯)時間了。' },
+        grammar: { jp: '〜であって、〜ではない', cn: '是～，而不是～', exJp: 'これは[事実|じじつ]であって、[嘘|うそ]ではない。', exCn: '這是事實，而不是謊言。' },
+        practice: { cn: '是免稅，而不是免費。', before: '[免税|めんぜい]', answer: 'であって、[無料|むりょう]ではない', after: 'です。' }
+      },
+      {
+        type: 'travel', chapter: 1, title: '東京購物：付款方式',
+        dialogue: [
+          { speaker: '顧客', text: 'クレジットカードは[使|つか]えますか。', cn: '可以使用信用卡嗎？' },
+          { speaker: '店員', text: 'はい、ご[利用|りよう]いただけます。', cn: '可以，歡迎使用。' }
+        ],
+        vocab: { jp: '[利用|りよう]', cn: '利用、使用', exJp: 'このカードは[利用|りよう]できません。', exCn: '這張卡無法使用。' },
+        grammar: { jp: '〜は[使|つか]えますか', cn: '可以使用～嗎？', exJp: 'ここでWi-Fiは[使|つか]えますか。', exCn: '這裡可以使用Wi-Fi嗎？' },
+        practice: { cn: '可以使用智慧型手機支付嗎？', before: 'スマホ[決済|けっさい]は', answer: '[使|つか]え', after: 'ますか。' }
+      },
+      {
+        type: 'travel', chapter: 1, title: '東京購物：順便逛逛',
+        dialogue: [
+          { speaker: '顧客', text: '[化粧品売|けしょうひんう]り[場|ば]のついでに、[免税|めんぜい]カウンターにも[寄|よ]りたいです。', cn: '去化妝品專櫃的同時，我也想順便去免稅櫃台。' },
+          { speaker: '店員', text: 'それなら、[同|おな]じ[階|かい]の[奥|おく]にございます。', cn: '這樣的話，就在同一層樓的深處。' }
+        ],
+        vocab: { jp: 'ついでに', cn: '順便 / 順道', exJp: '[散歩|さんぽ]のついでに[買|か]い[物|もの]をします。', exCn: '散步時順便買東西。' },
+        grammar: { jp: '〜に[寄|よ]る', cn: '順道去～ / 靠近～', exJp: '[帰|かえ]りにコンビニに[寄|よ]ります。', exCn: '回家路上順便去便利商店。' },
+        practice: { cn: '回家的路上順便去了超市。', before: '[帰|かえ]るついでに、スーパーに', answer: '[寄|よ]りました', after: '。' }
+      },
+      {
+        type: 'travel', chapter: 1, title: '東京購物：購物袋',
+        dialogue: [
+          { speaker: '店員', text: '[袋|ふくろ]にお[入|い]れしますか。', cn: '需要為您裝進袋子裡嗎？' },
+          { speaker: '顧客', text: 'いいえ、[袋|ふくろ]は[要|い]りません。', cn: '不用，我不需要袋子。' }
+        ],
+        vocab: { jp: '[要|い]る', cn: '需要', exJp: 'レシートは[要|い]りますか。', exCn: '需要收據嗎？' },
+        grammar: { jp: '〜は[要|い]りません', cn: '不需要～', exJp: 'ストローは[要|い]りません。', exCn: '不需要吸管。' },
+        practice: { cn: '不需要找零。', before: 'お[釣|つ]りは', answer: '[要|い]りません', after: '。' }
+      },
+      {
+        type: 'travel', chapter: 1, title: '東京購物：包裝服務',
+        dialogue: [
+          { speaker: '店員', text: '[贈|おく]り[物|もの]ですか。', cn: '是禮物嗎？' },
+          { speaker: '顧客', text: 'はい、[綺麗|きれい]に[包|つつ]んでください。', cn: '是的，請幫我包裝漂亮一點。' }
+        ],
+        vocab: { jp: '[包|つつ]む', cn: '包裝', exJp: 'プレゼントを[紙|かみ]で[包|つつ]みます。', exCn: '用紙包裝禮物。' },
+        grammar: { jp: '〜に〜てください', cn: '請把～弄成～(狀態)', exJp: '[静|しず]かにしてください。', exCn: '請安靜。' },
+        practice: { cn: '請把房間打掃乾淨。', before: '[部屋|へや]を', answer: '[綺麗|きれい]に', after: '[掃除|そうじ]してください。' }
+      },
+      
+      // ================= 第二章 (11-20頁) =================
+      {
+        type: 'rice', chapter: 2, title: '與米相關的單字：稻米構造',
+        groups: [
+          {
+            words: [{ jp: '[稲穂|いなほ]', cn: '稻穗' }, { jp: '[米俵|こめだわら]', cn: '草編米袋' }],
+            sentenceJp: '[秋|あき]になると、[黄金色|こがねいろ]の[稲穂|いなほ]が[米俵|こめだわら]に[変|か]わります。',
+            sentenceCn: '一到秋天，金黃色的稻穗就會變成一袋袋豐收的米。'
+          },
+          {
+            words: [{ jp: '[籾殻|もみがら]', cn: '稻殼 / 粗糠' }, { jp: '[米|こめ]ぬか', cn: '米糠' }],
+            sentenceJp: '[籾殻|もみがら]を[取|と]ると[玄米|げんまい]になり、さらに[削|けず]ると[米|こめ]ぬかが出ます。',
+            sentenceCn: '去除稻殼會變成糙米，再進一步削去外層就會產生米糠。'
+          },
+          {
+            words: [{ jp: '[胚芽|はいが]', cn: '胚芽' }, { jp: '[栄養価|えいようか]', cn: '營養價值' }],
+            sentenceJp: '[胚芽|はいが]を[残|のこ]したお[米|こめ]は、[非常|ひじょう]に[栄養価|えいようか]が[高|たか]いです。',
+            sentenceCn: '保留胚芽的米，其營養價值非常高。'
+          }
+        ]
+      },
+      {
+        type: 'rice', chapter: 2, title: '與米相關的單字：米膨發 (爆米香)',
+        groups: [
+          {
+            words: [{ jp: '[圧縮|あっしゅく]', cn: '壓縮' }, { jp: 'はぜる', cn: '爆開 / 裂開' }],
+            sentenceJp: 'お[米|こめ]を[圧縮|あっしゅく]して[急|きゅう]に[減圧|げんあつ]すると、[大|おお]きくはぜます。',
+            sentenceCn: '將米壓縮後突然減少壓力，米粒就會大幅爆開。'
+          },
+          {
+            words: [{ jp: '[膨化|ぼうか]', cn: '膨發' }, { jp: 'サクサク', cn: '酥脆的聲音或口感' }],
+            sentenceJp: '[膨化|ぼうか]させたお[米|こめ]は、サクサクとした[食感|しょっかん]になります。',
+            sentenceCn: '經過膨發處理的米，會變成非常酥脆的口感。'
+          },
+          {
+            words: [{ jp: '[香|こう]ばしい', cn: '香氣四溢的' }, { jp: 'おこし', cn: '爆米香糖 / 米果' }],
+            sentenceJp: '[香|こう]ばしいおこしは、[昔|むかし]ながらの[美味|おい]しいお[菓子|かし]です。',
+            sentenceCn: '香氣四溢的爆米香糖，是傳統懷舊的美味點心。'
+          }
+        ]
+      },
+      {
+        type: 'travel', chapter: 2, title: '東京旅遊：季節限定推薦',
+        dialogue: [
+          { speaker: '顧客', text: 'この[店|みせ]ならではのおすすめはありますか。', cn: '請問有這家店才嚐得到的特色推薦嗎？' },
+          { speaker: '店員', text: '[今|いま]の[時期|じき]なら、[旬|しゅん]の[食材|しょくざい]を[使|つか]った[天|てん]ぷらが[絶品|ぜっぴん]です。', cn: '如果是現在這個時期，使用當季食材炸的天婦羅是極品喔。' }
+        ],
+        vocab: { jp: '[旬|しゅん]', cn: '當季 / 時令', exJp: '[旬|しゅん]の[魚|さかな]はとても[美味|おい]しいです。', exCn: '當季的魚非常美味。' },
+        grammar: { jp: '〜ならではの', cn: '只有～才有的 / 獨特的', exJp: 'プロならではの[技術|ぎじゅつ]です。', exCn: '這是只有專家才具備的技術。' },
+        practice: { cn: '這是只有京都才嚐得到的味道。', before: 'これは[京都|きょうと]', answer: 'ならではの', after: '[味|あじ]です。' }
+      },
+      {
+        type: 'travel', chapter: 2, title: '東京旅遊：結帳與付款',
+        dialogue: [
+          { speaker: '顧客', text: 'お[会計|かいけい]は[別々|べつべつ]にしていただけますか。', cn: '請問結帳可以讓我們分開付嗎？' },
+          { speaker: '店員', text: '[申|もう]し[訳|わけ]ございません、[当店|とうてん]では[一括|いっかつ]でのお[支払|しはら]いをお[願|ねが]いしております。', cn: '非常抱歉，本店規定需一次合併結帳付清。' }
+        ],
+        vocab: { jp: '[一括|いっかつ]', cn: '一次付清 / 總括', exJp: 'クレジットカードで[一括払|いっかつばら]いします。', exCn: '使用信用卡一次付清。' },
+        grammar: { jp: '〜ていただけますか', cn: '能請您～嗎？', exJp: '[塩|しお]を[取|と]っていただけますか。', exCn: '能請您幫我拿一下鹽巴嗎？' },
+        practice: { cn: '可以請您各自結帳嗎？', before: 'お[会計|かいけい]は[別々|べつべつ]にして', answer: 'いただけますか', after: '。' }
+      },
+      {
+        type: 'travel', chapter: 2, title: '東京旅遊：選擇座位',
+        dialogue: [
+          { speaker: '顧客', text: '[窓側|まどがわ]の[席|せき]に[座|すわ]ってもいいですか。', cn: '可以坐在靠窗的位子嗎？' },
+          { speaker: '店員', text: '[申|もう]し[訳|わけ]ありません、そちらは[予約席|よやくせき]です。', cn: '非常抱歉，那是預約席。' }
+        ],
+        vocab: { jp: '[申|もう]し[訳|わけ]ありません', cn: '非常抱歉', exJp: '[遅|おく]れて[申|もう]し[訳|わけ]ありません。', exCn: '遲到了非常抱歉。' },
+        grammar: { jp: '〜に[座|すわ]る', cn: '坐在～', exJp: 'この[椅子|いす]に[座|すわ]ってください。', exCn: '請坐在這張椅子上。' },
+        practice: { cn: '可以坐在這裡嗎？', before: 'ここに', answer: '[座|すわ]って', after: 'もいいですか。' }
+      },
+      {
+        type: 'travel', chapter: 2, title: '東京旅遊：詢問路線',
+        dialogue: [
+          { speaker: '顧客', text: '[東京|とうきょう]タワーへの[行|い]き[方|かた]を[教|おし]えてください。', cn: '請告訴我怎麼去東京鐵塔。' },
+          { speaker: '店員', text: '[地下鉄|ちかてつ]に[乗|の]って、[次|つぎ]の[駅|えき]で[降|お]ります。', cn: '搭乘地下鐵，在下一站下車。' }
+        ],
+        vocab: { jp: '[降|お]りる', cn: '下車', exJp: 'バスを[降|お]ります。', exCn: '下公車。' },
+        grammar: { jp: '〜への[行|い]き[方|かた]', cn: '去～的方法', exJp: '[空港|くうこう]への[行|い]き[方|かた]を[調|しら]べます。', exCn: '查去機場的方法。' },
+        practice: { cn: '請告訴我怎麼去飯店。', before: 'ホテル', answer: 'への[行|い]き[方|かた]', after: 'を[教|おし]えてください。' }
+      },
+      {
+        type: 'travel', chapter: 2, title: '東京旅遊：車票精算',
+        dialogue: [
+          { speaker: '顧客', text: '[残高不足|ざんだかぶそく]で[改札|かいさつ]を[出|で]られません。', cn: '因為餘額不足，我出不了剪票口。' },
+          { speaker: '店員', text: 'あちらの[精算機|せいさんき]でチャージするか、[乗|の]り[越|こ]し[精算|せいさん]をしてください。', cn: '請去那邊的精算機加值，或是進行補票。' }
+        ],
+        vocab: { jp: '[精算|せいさん]', cn: '補票 / 結算', exJp: 'レジで[料金|りょうきん]を[精算|せいさん]します。', exCn: '在收銀台結算費用。' },
+        grammar: { jp: '〜か、〜か', cn: '或者是～，或者是～', exJp: '[電車|でんしゃ]で[行|い]くか、バスで[行|い]くか迷います。', exCn: '正在猶豫要搭電車去還是搭公車去。' },
+        practice: { cn: '用現金付款，還是用信用卡付款？', before: '[現金|げんきん]で[払|はら]う', answer: 'か、', after: 'カードで[払|はら]うか。' }
+      },
+      {
+        type: 'travel', chapter: 2, title: '東京旅遊：飯店入住',
+        dialogue: [
+          { speaker: '顧客', text: 'チェックインをお[願|ねが]いします。[予約|よやく]した[李|り]です。', cn: '麻煩辦理入住。我是預約的李。' },
+          { speaker: '店員', text: '[李様|りさま]ですね。パスポートのコピーを[取|と]らせてください。', cn: '是李先生/小姐呢。請讓我影印護照。' }
+        ],
+        vocab: { jp: '[予約|よやく]', cn: '預約', exJp: 'レストランを[予約|よやく]しました。', exCn: '預約了餐廳。' },
+        grammar: { jp: '〜た＋[名詞|めいし]', cn: '動詞過去式修飾名詞', exJp: '[昨日買|きのうか]った[本|ほん]。', exCn: '昨天買的書。' },
+        practice: { cn: '這是我昨天做的蛋糕。', before: 'これは[昨日|きのう]', answer: '[作|つく]った', after: 'ケーキです。' }
+      },
+      {
+        type: 'travel', chapter: 2, title: '東京旅遊：寄放行李',
+        dialogue: [
+          { speaker: '顧客', text: '[荷物|にもつ]を[預|あず]かってもらえませんか。', cn: '可以幫我保管行李嗎？' },
+          { speaker: '店員', text: 'はい、フロントでお[預|あず]かりします。', cn: '可以，在櫃檯為您保管。' }
+        ],
+        vocab: { jp: '[預|あず]かる', cn: '保管、代存', exJp: 'コートをお[預|あず]かりします。', exCn: '為您保管外套。' },
+        grammar: { jp: '〜てもらえませんか', cn: '能請您幫我～嗎？', exJp: '[写真|しゃしん]を[撮|と]ってもらえませんか。', exCn: '能請您幫我拍照嗎？' },
+        practice: { cn: '能請您在地圖上畫出來嗎？', before: '[地図|ちず]に[書|か]いて', answer: 'もらえませんか', after: '。' }
+      },
+      {
+        type: 'travel', chapter: 2, title: '東京旅遊：飯店設施',
+        dialogue: [
+          { speaker: '顧客', text: '[貸切風呂|かしきりぶろ]を[利用|りよう]したいのですが、[予約|よやく]は[必要|ひつよう]ですか。', cn: '我想使用個人包場浴池，需要預約嗎？' },
+          { speaker: '店員', text: '[空|あ]き[次第|しだい]のご[案内|あんない]となりますので、お[部屋|へや]でお[待|ま]ちください。', cn: '一有空位就會馬上為您帶位，請在房間內稍候。' }
+        ],
+        vocab: { jp: '[貸切|かしきり]', cn: '包場 / 私人專用', exJp: 'レストランを[貸切|かしきり]にしてパーティーをする。', exCn: '包下餐廳辦派對。' },
+        grammar: { jp: '〜[次第|しだい]', cn: '一～就立刻～', exJp: '[到着|とうちゃく]し[次第|しだい]、[連絡|れんらく]します。', exCn: '一抵達就會立刻聯絡。' },
+        practice: { cn: '房間準備好之後，會馬上通知您。', before: 'お[部屋|へや]の[準備|じゅんび]ができ', answer: '[次第|しだい]', after: '、お[知|し]らせします。' }
+      }
+    ];
+
+    function App() {
+      const [page, setPage] = useState(1);
+      const [showAnswer, setShowAnswer] = useState(false);
+
+      useEffect(() => {
+        setShowAnswer(false);
+      }, [page]);
+
+      const totalPages = pagesData.length;
+      const currentPageData = pagesData[page - 1];
+
+      const handleNext = () => setPage((p) => Math.min(p + 1, totalPages));
+      const handlePrev = () => setPage((p) => Math.max(p - 1, 1));
+      const toggleAnswer = () => setShowAnswer((prev) => !prev);
+
+      // 渲染單字學習頁面 (米相關) - 全新一組兩單字配一例句排版
+      const renderRicePage = (data) => (
+        <div className="flex flex-col items-center justify-center h-full space-y-6">
+          <div className="bg-white/90 backdrop-blur-sm p-6 rounded-3xl shadow-sm border-2 border-pink-200 w-full max-w-3xl">
+            <ul className="space-y-4">
+              {data.groups.map((group, idx) => (
+                <li key={idx} className="flex flex-col p-5 bg-pink-50/90 rounded-2xl hover:bg-pink-100 transition-colors border border-pink-100 shadow-sm">
+                  <div className="flex justify-around mb-4 border-b-2 border-pink-200 border-dashed pb-4">
+                    {group.words.map((w, i) => (
+                      <div key={i} className="flex flex-col items-center w-1/2">
+                        <span className="text-3xl font-extrabold text-pink-900 mb-2 drop-shadow-sm">{renderRuby(w.jp)}</span>
+                        <span className="text-xl font-bold text-pink-700">{w.cn}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="text-center px-4">
+                    <div className="text-xl md:text-2xl font-bold text-pink-800 mb-2 leading-relaxed">{renderRuby(group.sentenceJp)}</div>
+                    <div className="text-lg font-bold text-pink-600/90">{group.sentenceCn}</div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      );
+
+      // 渲染旅遊會話頁面
+      const renderTravelPage = (data) => (
+        <div className="flex flex-col h-full space-y-4">
+          
+          {/* 上方會話區塊 */}
+          <div className="bg-white/95 p-6 rounded-3xl shadow-sm border-2 border-pink-100 flex flex-col space-y-4">
+            <h3 className="text-pink-500 font-extrabold text-xl mb-2 flex items-center">
+              <span className="text-2xl mr-2">🌸</span> 情境對話
+            </h3>
+            {data.dialogue.map((line, idx) => {
+              const isCustomer = line.speaker === '顧客';
+              return (
+                <div key={idx} className={`flex w-full ${isCustomer ? 'justify-end' : 'justify-start'}`}>
+                  <div className={`max-w-[85%] rounded-3xl px-6 py-4 shadow-sm ${
+                    isCustomer 
+                      ? 'bg-white border-2 border-pink-300 text-pink-900 rounded-tr-md' 
+                      : 'bg-pink-100 border-2 border-pink-100 text-pink-900 rounded-tl-md'
+                  }`}>
+                    <div className="text-sm font-extrabold text-pink-500 mb-2">{line.speaker}</div>
+                    <div className="text-2xl font-bold mb-2 leading-relaxed">{renderRuby(line.text)}</div>
+                    <div className="text-lg font-bold text-pink-600/90">{line.cn}</div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* 中間學習區塊 (單字與文法) */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-grow">
+            <div className="bg-white/95 p-6 rounded-3xl shadow-sm border-2 border-pink-100 flex flex-col justify-center">
+              <h4 className="text-pink-500 font-extrabold text-lg mb-4 border-b-2 border-pink-100 pb-2">✨ 新出單字</h4>
+              <div className="text-3xl font-extrabold text-pink-900 mb-2">{renderRuby(data.vocab.jp)}</div>
+              <div className="text-xl text-pink-700 font-bold mb-5">{data.vocab.cn}</div>
+              <div className="bg-pink-50 p-4 rounded-2xl">
+                <div className="text-xl font-bold text-pink-900 mb-2">{renderRuby(data.vocab.exJp)}</div>
+                <div className="text-md font-bold text-pink-500">{data.vocab.exCn}</div>
+              </div>
+            </div>
+
+            <div className="bg-white/95 p-6 rounded-3xl shadow-sm border-2 border-pink-100 flex flex-col justify-center">
+              <h4 className="text-pink-500 font-extrabold text-lg mb-4 border-b-2 border-pink-100 pb-2">📖 文法句式</h4>
+              <div className="text-2xl font-extrabold text-pink-900 mb-2">{renderRuby(data.grammar.jp)}</div>
+              <div className="text-xl text-pink-700 font-bold mb-5">{data.grammar.cn}</div>
+              <div className="bg-pink-50 p-4 rounded-2xl">
+                <div className="text-xl font-bold text-pink-900 mb-2">{renderRuby(data.grammar.exJp)}</div>
+                <div className="text-md font-bold text-pink-500">{data.grammar.exCn}</div>
+              </div>
+            </div>
+          </div>
+
+          {/* 下方翻譯練習區塊 */}
+          <div className="bg-pink-100/70 p-6 rounded-3xl border-2 border-pink-300 flex flex-col items-center justify-center text-center shadow-inner">
+            <h4 className="text-pink-600 font-extrabold text-lg mb-3">✍️ 翻譯練習</h4>
+            <div className="text-xl font-bold text-pink-800 mb-5">{data.practice.cn}</div>
+            <div className="text-2xl font-bold text-pink-900 flex flex-wrap justify-center items-end leading-loose">
+              <span>{renderRuby(data.practice.before)}</span>
+              
+              <button 
+                onClick={toggleAnswer}
+                className="mx-3 inline-flex items-center justify-center min-w-[100px] border-b-4 border-pink-400 bg-white cursor-pointer px-4 py-2 rounded-xl hover:bg-pink-50 hover:-translate-y-1 transition-all shadow-md focus:outline-none"
+                title="點擊顯示解答"
+              >
+                {showAnswer ? (
+                  <span className="text-pink-600 font-extrabold animate-pulse">{renderRuby(data.practice.answer)}</span>
+                ) : (
+                  <span className="text-pink-300 text-lg font-bold select-none">點擊解答</span>
+                )}
+              </button>
+              
+              <span>{renderRuby(data.practice.after)}</span>
+            </div>
+          </div>
+        </div>
+      );
+
+      return (
+        <div className="min-h-screen p-4 md:p-8">
+          <div className="max-w-4xl mx-auto h-full flex flex-col">
+            
+            {/* 標頭 */}
+            <header className="flex justify-between items-center mb-6 bg-white/90 p-5 rounded-3xl shadow-sm border-2 border-pink-200 backdrop-blur-md">
+              <h1 className="text-2xl md:text-3xl font-extrabold text-pink-600 tracking-wide flex items-center">
+                <span className="mr-3 text-3xl">🌸</span> 初階日語綜合練習
+              </h1>
+              <div className="text-pink-600 font-extrabold bg-pink-100 px-5 py-2 rounded-full text-md shadow-sm border border-pink-200">
+                第 {page} 頁 / 共 {totalPages} 頁
+              </div>
+            </header>
+
+            {/* 內容區塊 */}
+            <main className="flex-grow flex flex-col">
+              <h2 className="text-center text-xl md:text-2xl font-extrabold text-pink-800 mb-6 drop-shadow-sm tracking-wide">
+                {currentPageData.chapter === 1 ? '第一章' : '第二章'}：{currentPageData.title}
+              </h2>
+              
+              <div className="flex-grow">
+                {currentPageData.type === 'rice' 
+                  ? renderRicePage(currentPageData) 
+                  : renderTravelPage(currentPageData)}
+              </div>
+            </main>
+
+            {/* 控制按鈕 */}
+            <footer className="mt-8 flex justify-between items-center bg-white/80 p-5 rounded-3xl shadow-sm border border-pink-100">
+              <button
+                onClick={handlePrev}
+                disabled={page === 1}
+                className={`px-8 py-4 rounded-full font-extrabold text-xl shadow-sm transition-all ${
+                  page === 1 
+                    ? 'bg-gray-100 text-gray-300 cursor-not-allowed' 
+                    : 'bg-white border-2 border-pink-300 text-pink-600 hover:bg-pink-100 hover:shadow-md active:scale-95'
+                }`}
+              >
+                上一頁
+              </button>
+              
+              <button
+                onClick={handleNext}
+                disabled={page === totalPages}
+                className={`px-8 py-4 rounded-full font-extrabold text-xl shadow-md transition-all ${
+                  page === totalPages 
+                    ? 'bg-gray-100 text-gray-300 cursor-not-allowed' 
+                    : 'bg-pink-400 text-white border-2 border-pink-400 hover:bg-pink-500 hover:border-pink-500 hover:shadow-lg active:scale-95'
+                }`}
+              >
+                下一頁
+              </button>
+            </footer>
+          </div>
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
